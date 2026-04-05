@@ -1,15 +1,6 @@
 import Link from "next/link";
-
-const categorias = [
-  { icone: "🌱", nome: "Insumos Agrícolas", slug: "insumos" },
-  { icone: "🚜", nome: "Máquinas e Equipamentos", slug: "maquinas" },
-  { icone: "🐄", nome: "Pecuária", slug: "pecuaria" },
-  { icone: "🌾", nome: "Grãos e Cereais", slug: "graos" },
-  { icone: "🪚", nome: "Serviços Rurais", slug: "servicos" },
-  { icone: "🏡", nome: "Imóveis Rurais", slug: "imoveis" },
-  { icone: "🌿", nome: "Orgânicos", slug: "organicos" },
-  { icone: "🐓", nome: "Aves e Suínos", slug: "aves-suinos" },
-];
+import { supabase, type ServiceCategory } from "@/lib/supabase";
+import SearchBar from "./components/SearchBar";
 
 const anunciosDestaque = [
   {
@@ -46,7 +37,22 @@ const anunciosDestaque = [
   },
 ];
 
-export default function Home() {
+async function getCategorias(): Promise<ServiceCategory[]> {
+  const { data, error } = await supabase
+    .from("service_categories")
+    .select("*")
+    .order("order_index", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar categorias:", error.message);
+    return [];
+  }
+  return data ?? [];
+}
+
+export default async function Home() {
+  const categorias = await getCategorias();
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -59,24 +65,13 @@ export default function Home() {
             </span>
           </Link>
 
-          <div className="flex-1 max-w-md">
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Buscar produtos e serviços..."
-                className="w-full rounded-full py-2 pl-4 pr-10 text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-verde-claro"
-              />
-              <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-500"
-                aria-label="Buscar"
-              >
-                🔍
-              </button>
-            </div>
-          </div>
+          <SearchBar />
 
           <nav className="hidden sm:flex items-center gap-4 text-sm font-medium shrink-0">
-            <Link href="/anunciar" className="bg-terra text-white px-4 py-2 rounded-full hover:bg-terra-claro transition-colors">
+            <Link
+              href="/anunciar"
+              className="bg-terra text-white px-4 py-2 rounded-full hover:bg-terra-claro transition-colors"
+            >
               + Anunciar
             </Link>
           </nav>
@@ -118,18 +113,23 @@ export default function Home() {
         {/* Categorias */}
         <section className="max-w-screen-lg mx-auto px-4 py-8">
           <h2 className="text-lg font-bold text-stone-800 mb-4">Categorias</h2>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-            {categorias.map((cat) => (
-              <Link
-                key={cat.slug}
-                href={`/categoria/${cat.slug}`}
-                className="flex flex-col items-center gap-1 p-3 rounded-xl bg-white border border-stone-200 hover:border-verde hover:shadow-sm transition-all text-center"
-              >
-                <span className="text-2xl">{cat.icone}</span>
-                <span className="text-xs font-medium text-stone-700 leading-tight">{cat.nome}</span>
-              </Link>
-            ))}
-          </div>
+
+          {categorias.length === 0 ? (
+            <p className="text-stone-400 text-sm">Nenhuma categoria disponível no momento.</p>
+          ) : (
+            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+              {categorias.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/buscar?categoria=${cat.slug}`}
+                  className="flex flex-col items-center gap-1 p-3 rounded-xl bg-white border border-stone-200 hover:border-verde hover:shadow-sm transition-all text-center"
+                >
+                  <span className="text-2xl">{cat.emoji}</span>
+                  <span className="text-xs font-medium text-stone-700 leading-tight">{cat.name_pt}</span>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Anúncios em Destaque */}
@@ -148,7 +148,6 @@ export default function Home() {
                 href={`/anuncio/${anuncio.id}`}
                 className="bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow"
               >
-                {/* Placeholder image */}
                 <div className="bg-stone-100 h-40 flex items-center justify-center text-4xl">
                   🌄
                 </div>
