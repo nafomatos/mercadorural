@@ -120,7 +120,7 @@ export default async function PrestadorPage({
           <SearchBar />
 
           <Link
-            href="/anunciar"
+            href="/cadastrar"
             className="hidden sm:block bg-terra text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-terra-claro transition-colors shrink-0"
           >
             + Anunciar
@@ -237,7 +237,7 @@ export default async function PrestadorPage({
           <span className="text-xl">🔍</span>
           <span className="text-[10px] font-medium">Buscar</span>
         </Link>
-        <Link href="/anunciar" className="flex flex-col items-center gap-0.5 text-stone-400">
+        <Link href="/cadastrar" className="flex flex-col items-center gap-0.5 text-stone-400">
           <span className="text-xl">➕</span>
           <span className="text-[10px] font-medium">Anunciar</span>
         </Link>

@@ -149,7 +149,7 @@ function EmptyState({ q, categoria }: { q: string | null; categoria: string | nu
           : "Seja o primeiro a se cadastrar no MercadoRural!"}
       </p>
       <Link
-        href="/anunciar"
+        href="/cadastrar"
         className="bg-verde text-white font-semibold px-6 py-2.5 rounded-full hover:bg-verde-escuro transition-colors text-sm"
       >
         Anunciar Grátis
@@ -193,13 +193,13 @@ export default async function BuscarPage({
           <SearchBar initialValue={q ?? ""} />
 
           <Link
-            href="/anunciar"
+            href="/cadastrar"
             className="hidden sm:block bg-terra text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-terra-claro transition-colors shrink-0"
           >
             + Anunciar
           </Link>
           <Link
-            href="/anunciar"
+            href="/cadastrar"
             className="sm:hidden bg-terra text-white px-3 py-2 rounded-full text-sm font-semibold hover:bg-terra-claro transition-colors shrink-0"
           >
             + Anunciar
@@ -265,7 +265,7 @@ export default async function BuscarPage({
           <span className="text-xl">🔍</span>
           <span className="text-[10px] font-medium">Buscar</span>
         </Link>
-        <Link href="/anunciar" className="flex flex-col items-center gap-0.5 text-stone-400">
+        <Link href="/cadastrar" className="flex flex-col items-center gap-0.5 text-stone-400">
           <span className="text-xl">➕</span>
           <span className="text-[10px] font-medium">Anunciar</span>
         </Link>
