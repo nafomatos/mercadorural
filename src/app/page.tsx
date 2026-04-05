@@ -2,40 +2,6 @@ import Link from "next/link";
 import { supabase, type ServiceCategory } from "@/lib/supabase";
 import SearchBar from "./components/SearchBar";
 
-const anunciosDestaque = [
-  {
-    id: 1,
-    titulo: "Trator John Deere 5075E 2022",
-    preco: "R$ 285.000",
-    local: "Ribeirão Preto, SP",
-    categoria: "Máquinas",
-    badge: "Destaque",
-  },
-  {
-    id: 2,
-    titulo: "Sementes de Soja RR1 – 50 sacas",
-    preco: "R$ 4.800",
-    local: "Rondonópolis, MT",
-    categoria: "Insumos",
-    badge: "Novo",
-  },
-  {
-    id: 3,
-    titulo: "Fazenda 350 ha – Lavoura e Pastagem",
-    preco: "R$ 12.500.000",
-    local: "Unaí, MG",
-    categoria: "Imóveis",
-    badge: null,
-  },
-  {
-    id: 4,
-    titulo: "Serviço de Pulverização Aérea",
-    preco: "R$ 18/ha",
-    local: "Sorriso, MT",
-    categoria: "Serviços",
-    badge: "Popular",
-  },
-];
 
 async function getCategorias(): Promise<ServiceCategory[]> {
   const { data, error } = await supabase
@@ -132,43 +98,6 @@ export default async function Home() {
           )}
         </section>
 
-        {/* Anúncios em Destaque */}
-        <section className="max-w-screen-lg mx-auto px-4 pb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-stone-800">Anúncios em Destaque</h2>
-            <Link href="/anuncios" className="text-verde text-sm font-medium hover:underline">
-              Ver todos →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {anunciosDestaque.map((anuncio) => (
-              <Link
-                key={anuncio.id}
-                href={`/anuncio/${anuncio.id}`}
-                className="bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="bg-stone-100 h-40 flex items-center justify-center text-4xl">
-                  🌄
-                </div>
-                <div className="p-4">
-                  {anuncio.badge && (
-                    <span className="inline-block text-xs font-semibold bg-verde text-white px-2 py-0.5 rounded-full mb-2">
-                      {anuncio.badge}
-                    </span>
-                  )}
-                  <p className="text-xs text-stone-500 mb-1">{anuncio.categoria}</p>
-                  <h3 className="font-semibold text-stone-900 text-sm mb-2 line-clamp-2">
-                    {anuncio.titulo}
-                  </h3>
-                  <p className="text-verde font-bold text-base">{anuncio.preco}</p>
-                  <p className="text-xs text-stone-400 mt-1">📍 {anuncio.local}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         {/* CTA Anunciar */}
         <section className="bg-palha px-4 py-10 text-center">
           <h2 className="text-xl font-bold text-stone-800 mb-2">
@@ -219,7 +148,7 @@ export default async function Home() {
               <span className="font-bold text-white text-lg">MercadoRural</span>
             </div>
             <p className="text-green-300 text-xs">
-              Conectando o campo brasileiro desde 2024.
+              Conectando o campo brasileiro desde 2026.
             </p>
           </div>
           <div>
@@ -239,7 +168,7 @@ export default async function Home() {
           </div>
         </div>
         <div className="max-w-screen-lg mx-auto mt-6 pt-4 border-t border-green-800 text-center text-green-400 text-xs">
-          © 2024 MercadoRural. Todos os direitos reservados.
+          © 2026 MercadoRural. Todos os direitos reservados.
         </div>
       </footer>
     </div>
