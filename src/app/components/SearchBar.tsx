@@ -3,14 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function SearchBar() {
+type Props = {
+  initialValue?: string;
+};
+
+export default function SearchBar({ initialValue = "" }: Props) {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialValue);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const q = query.trim();
     if (q) router.push(`/buscar?q=${encodeURIComponent(q)}`);
+    else router.push("/buscar");
   }
 
   return (

@@ -20,6 +20,7 @@ export type Provider = {
   whatsapp: string;
   bio: string | null;
   city: string;
+  category_slug: string | null;
   avg_rating: number;
   review_count: number;
   verified: boolean;
