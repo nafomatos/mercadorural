@@ -69,7 +69,7 @@ export default async function Home() {
 
           <nav className="hidden sm:flex items-center gap-4 text-sm font-medium shrink-0">
             <Link
-              href="/anunciar"
+              href="/cadastrar"
               className="bg-terra text-white px-4 py-2 rounded-full hover:bg-terra-claro transition-colors"
             >
               + Anunciar
@@ -77,7 +77,7 @@ export default async function Home() {
           </nav>
 
           <Link
-            href="/anunciar"
+            href="/cadastrar"
             className="sm:hidden bg-terra text-white px-3 py-2 rounded-full text-sm font-semibold hover:bg-terra-claro transition-colors shrink-0"
           >
             + Anunciar
@@ -102,7 +102,7 @@ export default async function Home() {
               Ver Anúncios
             </Link>
             <Link
-              href="/anunciar"
+              href="/cadastrar"
               className="bg-terra text-white font-semibold px-6 py-3 rounded-full hover:bg-terra-claro transition-colors"
             >
               Anunciar Grátis
@@ -178,7 +178,7 @@ export default async function Home() {
             Alcance milhares de produtores rurais em todo o Brasil. Crie seu anúncio gratuitamente.
           </p>
           <Link
-            href="/anunciar"
+            href="/cadastrar"
             className="bg-verde text-white font-semibold px-8 py-3 rounded-full hover:bg-verde-escuro transition-colors inline-block"
           >
             Criar Anúncio Grátis
@@ -196,7 +196,7 @@ export default async function Home() {
           <span className="text-xl">🔍</span>
           <span className="text-[10px] font-medium">Buscar</span>
         </Link>
-        <Link href="/anunciar" className="flex flex-col items-center gap-0.5 text-stone-400">
+        <Link href="/cadastrar" className="flex flex-col items-center gap-0.5 text-stone-400">
           <span className="text-xl">➕</span>
           <span className="text-[10px] font-medium">Anunciar</span>
         </Link>
@@ -226,7 +226,7 @@ export default async function Home() {
             <h3 className="font-semibold text-white mb-3">Navegação</h3>
             <ul className="space-y-1">
               <li><Link href="/anuncios" className="hover:text-white transition-colors">Anúncios</Link></li>
-              <li><Link href="/anunciar" className="hover:text-white transition-colors">Anunciar</Link></li>
+              <li><Link href="/cadastrar" className="hover:text-white transition-colors">Anunciar</Link></li>
               <li><Link href="/sobre" className="hover:text-white transition-colors">Sobre</Link></li>
             </ul>
           </div>
