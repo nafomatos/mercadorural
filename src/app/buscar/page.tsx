@@ -4,6 +4,9 @@ import SearchBar from "@/app/components/SearchBar";
 import CategoryFilterBar from "./CategoryFilterBar";
 import CityFilterSelect from "./CityFilterSelect";
 
+// Always fetch fresh data — never serve a stale cached page
+export const dynamic = "force-dynamic";
+
 // ─── Data fetching ──────────────────────────────────────────────
 
 async function getCategories(): Promise<ServiceCategory[]> {
@@ -30,8 +33,8 @@ async function getProviders(
   const { data, error } = await query.order("avg_rating", { ascending: false });
 
   if (error) {
-    console.error("Erro ao buscar prestadores:", error.message);
-    return [];
+    // Surface the error so it appears in Vercel/server logs — helps diagnose schema cache issues
+    throw new Error(`Supabase query failed: ${error.message} (code: ${error.code})`);
   }
   return data ?? [];
 }
