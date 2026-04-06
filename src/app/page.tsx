@@ -22,12 +22,13 @@ async function getCategorias(): Promise<ServiceCategory[]> {
 }
 
 async function getFeaturedProviders(): Promise<Provider[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("providers")
     .select("*")
-    .eq("status", "active")
+    .neq("status", "rejected")
     .order("created_at", { ascending: false })
     .limit(6);
+  if (error) console.error("Erro ao buscar profissionais em destaque:", error.message);
   return data ?? [];
 }
 
