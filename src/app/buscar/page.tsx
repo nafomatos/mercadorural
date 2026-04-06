@@ -27,7 +27,7 @@ async function getProviders(
   if (categoria) query = query.eq("category_slug", categoria);
   if (cidade)    query = query.eq("city", cidade);
   if (q) {
-    query = query.or(`name.ilike.%${q}%,city.ilike.%${q}%,bio.ilike.%${q}%`);
+    query = query.or(`name.ilike.%${q}%,city.ilike.%${q}%,bio.ilike.%${q}%,category_slug.ilike.%${q}%`);
   }
 
   const { data, error } = await query.order("avg_rating", { ascending: false });
