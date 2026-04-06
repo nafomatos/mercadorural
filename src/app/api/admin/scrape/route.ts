@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { CITY_GROUPS } from "@/lib/cities";
+import type { Provider } from "@/lib/types/providers";
 
 // Allow up to 5-minute execution on Vercel Pro/Enterprise
 export const maxDuration = 300;
@@ -200,7 +201,7 @@ export async function POST(req: Request) {
             }
 
             // Insert as pending
-            const { error } = await db.from("providers").insert({
+            const providerData: Omit<Provider, "id" | "avg_rating" | "review_count" | "created_at"> = {
               name:          place.name,
               whatsapp:      phone,
               city:          job.city,
@@ -208,7 +209,9 @@ export async function POST(req: Request) {
               bio:           null,
               verified:      false,
               status:        "pending",
-            });
+            };
+
+            const { error } = await db.from("providers").insert(providerData);
 
             if (error) {
               log(`✗ Erro ao inserir ${place.name}: ${error.message}`);
