@@ -91,8 +91,8 @@ async function textSearch(
     }>;
   };
 
-  // Cap at 3 results per query
-  return (data.places ?? []).slice(0, 3).map((p) => ({
+  // Cap at 10 results per query
+  return (data.places ?? []).slice(0, 10).map((p) => ({
     id: p.id,
     name: p.displayName?.text ?? "",
     phone: p.nationalPhoneNumber ?? null,
@@ -157,7 +157,7 @@ export async function POST(req: Request) {
         ctrl.enqueue(enc.encode(line + "\n"));
 
       try {
-        log(`→ ${jobs.length} combinações agendadas · máx. ${jobs.length * 3} prestadores`);
+        log(`→ ${jobs.length} combinações agendadas · máx. ${jobs.length * 10} prestadores`);
         log(`────────────────────────────────────────`);
 
         for (const job of jobs) {
