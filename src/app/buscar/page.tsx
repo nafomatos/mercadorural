@@ -33,8 +33,8 @@ async function getProviders(
   const { data, error } = await query.order("avg_rating", { ascending: false });
 
   if (error) {
-    // Surface the error so it appears in Vercel/server logs — helps diagnose schema cache issues
-    throw new Error(`Supabase query failed: ${error.message} (code: ${error.code})`);
+    console.error("Erro ao buscar prestadores:", error.message, error.code);
+    return [];
   }
   return data ?? [];
 }
@@ -139,6 +139,18 @@ function ProviderCard({ provider }: { provider: Provider }) {
         </svg>
         Chamar no WhatsApp
       </a>
+
+      {/* Website / Instagram link */}
+      {provider.website && (
+        <a
+          href={provider.website}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 border border-stone-200 text-stone-600 hover:border-verde hover:text-verde font-medium text-sm py-2 rounded-full transition-colors"
+        >
+          🌐 Ver site
+        </a>
+      )}
     </article>
   );
 }

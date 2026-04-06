@@ -57,6 +57,7 @@ interface PlaceResult {
   id: string;
   name: string;
   phone: string | null;
+  website: string | null;
 }
 
 async function textSearch(
@@ -72,7 +73,7 @@ async function textSearch(
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
         "X-Goog-FieldMask":
-          "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating",
+          "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating,places.websiteUri",
       },
       body: JSON.stringify({ textQuery: query, languageCode: "pt-BR" }),
     }
@@ -88,6 +89,7 @@ async function textSearch(
       id: string;
       displayName?: { text?: string };
       nationalPhoneNumber?: string;
+      websiteUri?: string;
     }>;
   };
 
@@ -96,6 +98,7 @@ async function textSearch(
     id: p.id,
     name: p.displayName?.text ?? "",
     phone: p.nationalPhoneNumber ?? null,
+    website: p.websiteUri ?? null,
   }));
 }
 
@@ -209,6 +212,7 @@ export async function POST(req: Request) {
               bio:           null,
               verified:      false,
               status:        "pending",
+              website:       place.website,
             };
 
             const { error } = await db.from("providers").insert(providerData);
