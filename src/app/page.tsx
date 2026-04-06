@@ -67,15 +67,6 @@ function whatsappHref(number: string): string {
   return `https://wa.me/55${digits}`;
 }
 
-// ─── Sample data for placeholder cards ──────────────────────────
-
-const PLACEHOLDER_PROVIDERS = [
-  { name: "João Silva", emoji: "🐄", category: "Inseminador", city: "Ribeirão Preto, SP" },
-  { name: "Maria Santos", emoji: "🌱", category: "Agrônomo", city: "Uberaba, MG" },
-  { name: "Carlos Oliveira", emoji: "🚜", category: "Mecânico de trator", city: "Barretos, SP" },
-  { name: "Ana Ferreira", emoji: "🐾", category: "Veterinário", city: "Uberlândia, MG" },
-];
-
 // ─── Page ───────────────────────────────────────────────────────
 
 export default async function Home() {
@@ -172,31 +163,39 @@ export default async function Home() {
             <p className="text-stone-400 text-sm">Nenhuma categoria disponível no momento.</p>
           ) : (
             <div className="space-y-6">
-              {CATEGORY_GROUPS.map((group) => {
-                const cats = group.slugs
-                  .map((s) => catMap.get(s))
-                  .filter((c): c is ServiceCategory => !!c);
-                if (cats.length === 0) return null;
-                return (
-                  <div key={group.title}>
-                    <h3 className="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">
-                      {group.title}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {cats.map((cat) => (
-                        <Link
-                          key={cat.slug}
-                          href={`/buscar?categoria=${cat.slug}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white border border-stone-200 hover:border-verde hover:shadow-sm transition-all text-sm"
-                        >
-                          <span>{cat.emoji}</span>
-                          <span className="font-medium text-stone-700">{cat.name_pt}</span>
-                        </Link>
-                      ))}
+              {(() => {
+                const groupedSlugs = new Set(CATEGORY_GROUPS.flatMap((g) => g.slugs));
+                const ungrouped = categorias.filter((c) => !groupedSlugs.has(c.slug));
+                const allGroups = ungrouped.length > 0
+                  ? [...CATEGORY_GROUPS, { title: "Outros", slugs: ungrouped.map((c) => c.slug) }]
+                  : CATEGORY_GROUPS;
+
+                return allGroups.map((group) => {
+                  const cats = group.slugs
+                    .map((s) => catMap.get(s))
+                    .filter((c): c is ServiceCategory => !!c);
+                  if (cats.length === 0) return null;
+                  return (
+                    <div key={group.title}>
+                      <h3 className="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">
+                        {group.title}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {cats.map((cat) => (
+                          <Link
+                            key={cat.slug}
+                            href={`/buscar?categoria=${cat.slug}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white border border-stone-200 hover:border-verde hover:shadow-sm transition-all text-sm"
+                          >
+                            <span>{cat.emoji}</span>
+                            <span className="font-medium text-stone-700">{cat.name_pt}</span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           )}
         </section>
@@ -245,42 +244,17 @@ export default async function Home() {
                 })}
               </div>
             ) : (
-              /* Placeholder cards when no providers exist */
-              <div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {PLACEHOLDER_PROVIDERS.map((p) => (
-                    <div
-                      key={p.name}
-                      className="bg-white rounded-2xl border border-dashed border-stone-300 p-4 flex flex-col gap-3 opacity-75"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-lg shrink-0">
-                          {p.emoji}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-stone-700 text-sm">{p.name}</h3>
-                          <p className="text-xs text-stone-500">
-                            {p.emoji} {p.category} — 📍 {p.city}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-medium text-stone-400 bg-stone-100 rounded-full px-2 py-0.5 self-start">
-                        Exemplo
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="text-center mt-6">
-                  <p className="text-stone-600 text-sm mb-3">
-                    Seja o primeiro profissional real da sua região
-                  </p>
-                  <Link
-                    href="/cadastrar"
-                    className="inline-block bg-verde text-white font-semibold px-6 py-2.5 rounded-full hover:bg-verde-escuro transition-colors text-sm"
-                  >
-                    Cadastre-se grátis
-                  </Link>
-                </div>
+              /* Empty state when no providers exist */
+              <div className="text-center py-10">
+                <p className="text-stone-600 text-sm mb-3">
+                  Seja o primeiro profissional da sua região no MercadoRural!
+                </p>
+                <Link
+                  href="/cadastrar"
+                  className="inline-block bg-verde text-white font-semibold px-6 py-2.5 rounded-full hover:bg-verde-escuro transition-colors text-sm"
+                >
+                  Cadastre-se grátis
+                </Link>
               </div>
             )}
           </div>

@@ -45,7 +45,7 @@ export default function HeroSearch() {
           <button
             key={tag.slug}
             type="button"
-            onClick={() => router.push(`/buscar?q=${encodeURIComponent(tag.label)}`)}
+            onClick={() => router.push(`/buscar?categoria=${encodeURIComponent(tag.slug)}`)}
             className="bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm px-3 py-1.5 rounded-full border border-white/30 transition-colors"
           >
             {tag.label}

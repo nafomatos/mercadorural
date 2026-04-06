@@ -9,9 +9,9 @@ Supabase (PostgreSQL).
 ## Repository
 
 - **GitHub:** `nafomatos/mercadorural`
-- **Active branch:** `claude/setup-mercadorural-nextjs-QSsmd`
-- **`main`:** empty (only original README commit — all app code is on the feature branch)
-- **Vercel:** not yet deployed
+- **Active branch:** `claude/fix-search-homepage-54o4k`
+- **`main`:** production branch
+- **Vercel:** deployed
 
 ---
 
@@ -67,7 +67,8 @@ src/
 supabase/migrations/
     ├── 20240101000000_initial_schema.sql    # service_categories, providers, reviews + trigger
     ├── 20240102000000_add_provider_category.sql  # providers.category_slug FK
-    └── 20240103000000_add_provider_status.sql    # providers.status column
+    ├── 20240103000000_add_provider_status.sql    # providers.status column
+    └── 20240104000000_add_provider_website.sql   # providers.website column
 ```
 
 ---
@@ -83,8 +84,10 @@ supabase/migrations/
 | name_pt | text | Portuguese name |
 | slug | text UNIQUE | used as FK in providers |
 
-Seeded with 8 rows (insumos, maquinas, pecuaria, graos, servicos, imoveis,
-organicos, aves-suinos). **Only 8 seeded — schema supports more.**
+Initially seeded with 8 generic rows. The live DB now has ~24 specific service
+category slugs (veterinario, inseminador, agronomo, etc.) added via the admin
+panel / Supabase SQL Editor. **`CATEGORY_GROUPS` in `page.tsx` maps these to
+display groups; any slug not listed falls into an auto-generated "Outros" group.**
 
 ### `providers`
 | Column | Type | Notes |
@@ -126,7 +129,7 @@ Indexes: `category_slug`, `city`, `status`.
 | Route | Type | Description |
 |---|---|---|
 | `/` | Server static | Homepage: category grid + hero + CTA |
-| `/buscar` | Server dynamic | Search: `?q`, `?categoria`, `?cidade` |
+| `/buscar` | Server dynamic | Search: `?q` (searches name/city/bio/category_slug), `?categoria`, `?cidade` |
 | `/cadastrar` | Client static | 3-step provider registration |
 | `/prestador/[id]` | Server dynamic | Provider profile + reviews |
 | `/admin` | Client static | Admin panel (no auth — secret URL) |
@@ -192,5 +195,5 @@ Indexes: `category_slug`, `city`, `status`.
 npm run dev      # http://localhost:3000
 npm run build    # production build check
 npm run lint     # ESLint
-git push -u origin claude/setup-mercadorural-nextjs-QSsmd
+git push -u origin claude/fix-search-homepage-54o4k
 ```
