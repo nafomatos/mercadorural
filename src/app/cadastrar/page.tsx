@@ -4,17 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase, type ServiceCategory } from "@/lib/supabase";
-
-// ─── Constants ────────────────────────────────────────────────
-
-const CITIES = [
-  "Ribeirão Preto",
-  "Sertãozinho",
-  "Jaboticabal",
-  "Uberaba",
-  "Uberlândia",
-  "Araguari",
-];
+import CitySelect from "@/app/components/CitySelect";
 
 const TOTAL_STEPS = 3;
 
@@ -202,17 +192,13 @@ function Step1({
       {/* Cidade */}
       <div>
         <Label htmlFor="city" required>Cidade</Label>
-        <select
+        <CitySelect
           id="city"
           value={form.city}
-          onChange={(e) => onChange("city", e.target.value)}
+          onChange={(v) => onChange("city", v)}
           className={inputClass(errors.city)}
-        >
-          <option value="">Selecione sua cidade...</option>
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+          placeholder="Selecione sua cidade..."
+        />
         <FieldError msg={errors.city} />
       </div>
     </div>
@@ -429,6 +415,7 @@ export default function CadastrarPage() {
         category_slug: form.category_slug,
         bio: form.bio.trim(),
         verified: false,
+        status: "active",
       })
       .select("id")
       .single();

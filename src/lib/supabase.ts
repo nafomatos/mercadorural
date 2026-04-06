@@ -24,6 +24,7 @@ export type Provider = {
   avg_rating: number;
   review_count: number;
   verified: boolean;
+  status: "active" | "pending" | "rejected";
   created_at: string;
 };
 
