@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase, type Provider, type ServiceCategory } from "@/lib/supabase";
-import { CITY_GROUPS } from "@/lib/cities";
+import { CITY_GROUPS, ALL_CITIES } from "@/lib/cities";
 import CitySelect from "@/app/components/CitySelect";
 
-type Tab = "providers" | "add" | "pending";
+type Tab = "providers" | "add" | "pending" | "importar";
 
 type AddForm = {
   name: string;
@@ -490,6 +490,193 @@ function TabPending({
   );
 }
 
+// ─── Tab 4 — Google Places importer ──────────────────────────
+
+function TabImportar({ categories }: { categories: ServiceCategory[] }) {
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCity, setSelectedCity]         = useState("");
+  const [log, setLog]                           = useState("");
+  const [running, setRunning]                   = useState(false);
+  const [summary, setSummary]                   = useState<{ inserted: number; skipped: number } | null>(null);
+  const logRef  = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Auto-scroll the log textarea as new lines arrive
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [log]);
+
+  // Live count of expected combinations
+  const catCount   = selectedCategory ? 1 : categories.length;
+  const cityCount  = selectedCity     ? 1 : ALL_CITIES.length;
+  const combos     = catCount * cityCount;
+  const maxProviders = combos * 3;
+
+  async function handleStart() {
+    setRunning(true);
+    setLog("");
+    setSummary(null);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const body: Record<string, string> = {};
+    if (selectedCategory) body.category_slug = selectedCategory;
+    if (selectedCity)     body.city           = selectedCity;
+
+    try {
+      const res = await fetch("/api/admin/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      if (!res.ok || !res.body) {
+        setLog(`✗ Erro ${res.status}: ${await res.text()}`);
+        return;
+      }
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullLog   = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        fullLog += decoder.decode(value, { stream: true });
+        setLog(fullLog);
+      }
+
+      // Parse machine-readable summary line
+      const m = fullLog.match(/TOTAL:inserted=(\d+),skipped=(\d+)/);
+      if (m) setSummary({ inserted: parseInt(m[1]), skipped: parseInt(m[2]) });
+    } catch (err: unknown) {
+      const isAbort = (err as { name?: string }).name === "AbortError";
+      if (!isAbort) setLog((prev) => prev + `\n✗ Erro de conexão: ${err}\n`);
+    } finally {
+      setRunning(false);
+      abortRef.current = null;
+    }
+  }
+
+  function handleStop() {
+    abortRef.current?.abort();
+    setRunning(false);
+    setLog((prev) => prev + "\n⚠ Importação interrompida pelo usuário.\n");
+  }
+
+  return (
+    <div className="flex flex-col gap-5 max-w-3xl">
+      {/* Controls */}
+      <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 flex flex-wrap gap-4 items-end">
+        <div className="flex-1 min-w-44">
+          <label className={labelCls}>Categoria</label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            disabled={running}
+            className={selectCls}
+          >
+            <option value="">Todas</option>
+            {categories.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.emoji} {c.name_pt}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex-1 min-w-44">
+          <label className={labelCls}>Cidade</label>
+          <CitySelect
+            value={selectedCity}
+            onChange={setSelectedCity}
+            className={selectCls}
+            placeholder="Todas"
+            disabled={running}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 shrink-0">
+          <p className="text-xs font-mono text-stone-400 whitespace-nowrap">
+            {combos} combinaç{combos === 1 ? "ão" : "ões"} · máx.{" "}
+            <span className="text-stone-600 font-semibold">{maxProviders}</span> prestadores
+          </p>
+          {!running ? (
+            <button
+              onClick={handleStart}
+              className="bg-verde hover:bg-verde-escuro text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors flex items-center justify-center gap-2"
+            >
+              🔍 Iniciar importação
+            </button>
+          ) : (
+            <button
+              onClick={handleStop}
+              className="bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold px-5 py-2 rounded-full transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Parar
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Warning banner */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 flex gap-2">
+        <span className="shrink-0 mt-0.5">⚠️</span>
+        <span>
+          A importação pode levar <strong>10–15 minutos</strong> para todas as combinações.
+          Não feche esta página. Resultados entram como <strong>Pendentes</strong> — revise
+          na aba Pendentes antes de publicar.
+        </span>
+      </div>
+
+      {/* Live log */}
+      {(log || running) && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className={labelCls}>Log</label>
+            {running && (
+              <span className="text-xs text-stone-400 animate-pulse">● importando...</span>
+            )}
+          </div>
+          <textarea
+            ref={logRef}
+            value={log}
+            readOnly
+            rows={22}
+            className="w-full font-mono text-xs bg-stone-900 text-green-400 rounded-xl p-4 resize-y focus:outline-none leading-relaxed"
+          />
+        </div>
+      )}
+
+      {/* Summary card */}
+      {summary && (
+        <div className="bg-verde/5 border border-verde/20 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex gap-8 flex-1">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-verde">{summary.inserted}</p>
+              <p className="text-xs text-stone-500 mt-0.5">inserido(s)</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-stone-300">{summary.skipped}</p>
+              <p className="text-xs text-stone-500 mt-0.5">ignorado(s)</p>
+            </div>
+          </div>
+          <p className="text-sm text-stone-600 max-w-xs">
+            Novos perfis aguardam revisão na aba{" "}
+            <strong className="text-amber-700">Pendentes</strong>.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main admin page ──────────────────────────────────────────
 
 export default function AdminPage() {
@@ -561,8 +748,9 @@ export default function AdminPage() {
 
   const tabs: { id: Tab; label: string; badge?: number }[] = [
     { id: "providers", label: "Prestadores", badge: providers.length },
-    { id: "add",       label: "Adicionar"  },
-    { id: "pending",   label: "Pendentes",  badge: pending.length },
+    { id: "add",       label: "Adicionar"   },
+    { id: "pending",   label: "Pendentes",   badge: pending.length  },
+    { id: "importar",  label: "Importar"    },
   ];
 
   return (
@@ -649,6 +837,9 @@ export default function AdminPage() {
                 onApprove={handleApprove}
                 onReject={handleReject}
               />
+            )}
+            {activeTab === "importar" && (
+              <TabImportar categories={categories} />
             )}
           </>
         )}
