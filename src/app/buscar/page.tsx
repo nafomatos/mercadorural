@@ -2,6 +2,7 @@ import Link from "next/link";
 import { supabase, type Provider, type ServiceCategory } from "@/lib/supabase";
 import SearchBar from "@/app/components/SearchBar";
 import CategoryFilterBar from "./CategoryFilterBar";
+import CityFilterSelect from "./CityFilterSelect";
 
 // ─── Data fetching ──────────────────────────────────────────────
 
@@ -13,16 +14,17 @@ async function getCategories(): Promise<ServiceCategory[]> {
   return data ?? [];
 }
 
-async function getProviders(q: string | null, categoria: string | null): Promise<Provider[]> {
-  let query = supabase.from("providers").select("*");
+async function getProviders(
+  q: string | null,
+  categoria: string | null,
+  cidade: string | null
+): Promise<Provider[]> {
+  let query = supabase.from("providers").select("*").eq("status", "active");
 
-  if (categoria) {
-    query = query.eq("category_slug", categoria);
-  }
+  if (categoria) query = query.eq("category_slug", categoria);
+  if (cidade)    query = query.eq("city", cidade);
   if (q) {
-    query = query.or(
-      `name.ilike.%${q}%,city.ilike.%${q}%,bio.ilike.%${q}%`
-    );
+    query = query.or(`name.ilike.%${q}%,city.ilike.%${q}%,bio.ilike.%${q}%`);
   }
 
   const { data, error } = await query.order("avg_rating", { ascending: false });
@@ -39,13 +41,15 @@ async function getProviders(q: string | null, categoria: string | null): Promise
 function buildPageTitle(
   q: string | null,
   categoria: string | null,
+  cidade: string | null,
   categories: ServiceCategory[]
 ): string {
   const cat = categories.find((c) => c.slug === categoria);
-  if (cat && q) return `${cat.name_pt} · "${q}"`;
-  if (cat) return cat.name_pt;
-  if (q) return `Busca: "${q}"`;
-  return "Todos os Profissionais";
+  const parts: string[] = [];
+  if (cat) parts.push(cat.name_pt);
+  if (q)   parts.push(`"${q}"`);
+  const base = parts.length ? parts.join(" · ") : "Todos os Profissionais";
+  return cidade ? `${base} em ${cidade}` : base;
 }
 
 function whatsappHref(number: string): string {
@@ -160,22 +164,23 @@ function EmptyState({ q, categoria }: { q: string | null; categoria: string | nu
 
 // ─── Page ────────────────────────────────────────────────────────
 
-type SearchParams = { q?: string; categoria?: string };
+type SearchParams = { q?: string; categoria?: string; cidade?: string };
 
 export default async function BuscarPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  const q = searchParams.q?.trim() || null;
+  const q        = searchParams.q?.trim() || null;
   const categoria = searchParams.categoria || null;
+  const cidade   = searchParams.cidade || null;
 
   const [providers, categories] = await Promise.all([
-    getProviders(q, categoria),
+    getProviders(q, categoria, cidade),
     getCategories(),
   ]);
 
-  const pageTitle = buildPageTitle(q, categoria, categories);
+  const pageTitle = buildPageTitle(q, categoria, cidade, categories);
   const activeCategory = categories.find((c) => c.slug === categoria) ?? null;
 
   return (
@@ -219,12 +224,26 @@ export default async function BuscarPage({
         </div>
 
         {/* Category filter chips */}
-        <div className="mb-6">
+        <div className="mb-4">
           <CategoryFilterBar
             categories={categories}
             activeSlug={categoria}
             q={q}
           />
+        </div>
+
+        {/* City filter */}
+        <div className="flex items-center gap-2 mb-5">
+          <CityFilterSelect q={q} categoria={categoria} cidade={cidade} />
+          {cidade && (
+            <Link
+              href={`/buscar${(() => { const p = new URLSearchParams(); if (q) p.set("q", q); if (categoria) p.set("categoria", categoria); const s = p.toString(); return s ? `?${s}` : ""; })()}`}
+              className="text-xs text-stone-400 hover:text-terra transition-colors"
+              aria-label="Remover filtro de cidade"
+            >
+              ✕ {cidade}
+            </Link>
+          )}
         </div>
 
         {/* Active category badge */}
