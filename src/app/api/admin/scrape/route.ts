@@ -50,60 +50,52 @@ function cleanPhone(raw: string | null | undefined): string | null {
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// ─── Google Places API calls ────────────────────────────────────
+// ─── Google Places API (New) calls ─────────────────────────────
+
+interface PlaceResult {
+  id: string;
+  name: string;
+  phone: string | null;
+}
 
 async function textSearch(
   query: string,
   apiKey: string
-): Promise<Array<{ place_id: string; name: string }>> {
-  const url =
-    `https://maps.googleapis.com/maps/api/place/textsearch/json` +
-    `?query=${encodeURIComponent(query)}&key=${apiKey}&language=pt-BR&region=br`;
-
-  const res = await fetch(url, { cache: "no-store" });
-  const data = (await res.json()) as {
-    status: string;
-    error_message?: string;
-    results?: Array<{ place_id: string; name: string }>;
-  };
-
-  if (data.status === "ZERO_RESULTS") return [];
-  if (data.status !== "OK") {
-    throw new Error(
-      `${data.status}${data.error_message ? ": " + data.error_message : ""}`
-    );
-  }
-  // Cap at 3 results per query
-  return (data.results ?? []).slice(0, 3).map((r) => ({
-    place_id: r.place_id,
-    name: r.name,
-  }));
-}
-
-async function getPlacePhone(
-  placeId: string,
-  apiKey: string
-): Promise<string | null> {
-  const url =
-    `https://maps.googleapis.com/maps/api/place/details/json` +
-    `?place_id=${placeId}&fields=formatted_phone_number,international_phone_number` +
-    `&key=${apiKey}&language=pt-BR`;
-
-  const res = await fetch(url, { cache: "no-store" });
-  const data = (await res.json()) as {
-    status: string;
-    result?: {
-      formatted_phone_number?: string;
-      international_phone_number?: string;
-    };
-  };
-
-  if (data.status !== "OK") return null;
-  return (
-    data.result?.formatted_phone_number ??
-    data.result?.international_phone_number ??
-    null
+): Promise<PlaceResult[]> {
+  const res = await fetch(
+    "https://places.googleapis.com/v1/places:searchText",
+    {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask":
+          "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating",
+      },
+      body: JSON.stringify({ textQuery: query, languageCode: "pt-BR" }),
+    }
   );
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+
+  const data = (await res.json()) as {
+    places?: Array<{
+      id: string;
+      displayName?: { text?: string };
+      nationalPhoneNumber?: string;
+    }>;
+  };
+
+  // Cap at 3 results per query
+  return (data.places ?? []).slice(0, 3).map((p) => ({
+    id: p.id,
+    name: p.displayName?.text ?? "",
+    phone: p.nationalPhoneNumber ?? null,
+  }));
 }
 
 // ─── POST handler ───────────────────────────────────────────────
@@ -170,7 +162,7 @@ export async function POST(req: Request) {
         for (const job of jobs) {
           log(`\n→ Buscando: "${job.query}"`);
 
-          let places: Array<{ place_id: string; name: string }>;
+          let places: PlaceResult[];
           try {
             places = await textSearch(job.query, apiKey);
             await delay(200);
@@ -186,16 +178,7 @@ export async function POST(req: Request) {
           log(`ℹ ${places.length} resultado(s).`);
 
           for (const place of places) {
-            // Place Details → phone number
-            let rawPhone: string | null = null;
-            try {
-              rawPhone = await getPlacePhone(place.place_id, apiKey);
-              await delay(200);
-            } catch {
-              // ignore — phone stays null
-            }
-
-            const phone = cleanPhone(rawPhone);
+            const phone = cleanPhone(place.phone);
             if (!phone) {
               log(`✗ ${place.name} — sem telefone válido`);
               skipped++;
