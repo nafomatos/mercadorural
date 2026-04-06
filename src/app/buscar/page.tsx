@@ -156,17 +156,35 @@ function ProviderCard({ provider }: { provider: Provider }) {
 }
 
 function EmptyState({ q, categoria }: { q: string | null; categoria: string | null }) {
+  const shareText = encodeURIComponent(
+    "Conheça o MercadoRural — o marketplace do campo brasileiro! Cadastre-se grátis: https://mercadorural.vercel.app/cadastrar"
+  );
+
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-16 text-center px-4">
       <span className="text-5xl">🌾</span>
       <p className="text-stone-700 font-semibold text-lg">
-        Nenhum profissional encontrado nessa região ainda.
+        Ainda não temos profissionais nessa categoria/região
       </p>
-      <p className="text-stone-400 text-sm max-w-xs">
+      <p className="text-stone-400 text-sm max-w-sm">
         {q || categoria
-          ? "Tente uma busca diferente ou explore outras categorias."
+          ? "Conhece alguém que oferece esse serviço? Compartilhe o MercadoRural!"
           : "Seja o primeiro a se cadastrar no MercadoRural!"}
       </p>
+
+      <a
+        href={`https://wa.me/?text=${shareText}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-semibold px-5 py-2.5 rounded-full transition-colors text-sm"
+      >
+        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.534 5.857L.057 23.882l6.196-1.453A11.938 11.938 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.792 9.792 0 01-4.988-1.364l-.358-.214-3.714.871.932-3.614-.232-.373A9.78 9.78 0 012.182 12C2.182 6.565 6.565 2.182 12 2.182S21.818 6.565 21.818 12 17.435 21.818 12 21.818z" />
+        </svg>
+        Compartilhar no WhatsApp
+      </a>
+
       <Link
         href="/cadastrar"
         className="bg-verde text-white font-semibold px-6 py-2.5 rounded-full hover:bg-verde-escuro transition-colors text-sm"
@@ -303,9 +321,9 @@ export default async function BuscarPage({
           <span className="text-xl">➕</span>
           <span className="text-[10px] font-medium">Anunciar</span>
         </Link>
-        <Link href="/mensagens" className="flex flex-col items-center gap-0.5 text-stone-400">
-          <span className="text-xl">💬</span>
-          <span className="text-[10px] font-medium">Mensagens</span>
+        <Link href="/#categorias" className="flex flex-col items-center gap-0.5 text-stone-400">
+          <span className="text-xl">📂</span>
+          <span className="text-[10px] font-medium">Categorias</span>
         </Link>
         <Link href="/perfil" className="flex flex-col items-center gap-0.5 text-stone-400">
           <span className="text-xl">👤</span>
