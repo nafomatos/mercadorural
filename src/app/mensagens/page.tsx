@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function MensagensPage() {
   return (
-    <SiteShell activeNav="mensagens">
+    <SiteShell>
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center gap-5">
         <span className="text-6xl">💬</span>
         <h1 className="text-2xl font-bold text-stone-900">Mensagens diretas</h1>
