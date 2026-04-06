@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { CITY_GROUPS } from "@/lib/cities";
+import type { Provider } from "@/lib/types/providers";
 
 // Allow up to 5-minute execution on Vercel Pro/Enterprise
 export const maxDuration = 300;
@@ -56,6 +57,7 @@ interface PlaceResult {
   id: string;
   name: string;
   phone: string | null;
+  website: string | null;
 }
 
 async function textSearch(
@@ -71,7 +73,7 @@ async function textSearch(
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
         "X-Goog-FieldMask":
-          "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating",
+          "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating,places.websiteUri",
       },
       body: JSON.stringify({ textQuery: query, languageCode: "pt-BR" }),
     }
@@ -87,14 +89,16 @@ async function textSearch(
       id: string;
       displayName?: { text?: string };
       nationalPhoneNumber?: string;
+      websiteUri?: string;
     }>;
   };
 
-  // Cap at 3 results per query
-  return (data.places ?? []).slice(0, 3).map((p) => ({
+  // Cap at 10 results per query
+  return (data.places ?? []).slice(0, 10).map((p) => ({
     id: p.id,
     name: p.displayName?.text ?? "",
     phone: p.nationalPhoneNumber ?? null,
+    website: p.websiteUri ?? null,
   }));
 }
 
@@ -156,7 +160,7 @@ export async function POST(req: Request) {
         ctrl.enqueue(enc.encode(line + "\n"));
 
       try {
-        log(`→ ${jobs.length} combinações agendadas · máx. ${jobs.length * 3} prestadores`);
+        log(`→ ${jobs.length} combinações agendadas · máx. ${jobs.length * 10} prestadores`);
         log(`────────────────────────────────────────`);
 
         for (const job of jobs) {
@@ -200,7 +204,7 @@ export async function POST(req: Request) {
             }
 
             // Insert as pending
-            const { error } = await db.from("providers").insert({
+            const providerData: Omit<Provider, "id" | "avg_rating" | "review_count" | "created_at"> = {
               name:          place.name,
               whatsapp:      phone,
               city:          job.city,
@@ -208,7 +212,10 @@ export async function POST(req: Request) {
               bio:           null,
               verified:      false,
               status:        "pending",
-            });
+              website:       place.website,
+            };
+
+            const { error } = await db.from("providers").insert(providerData);
 
             if (error) {
               log(`✗ Erro ao inserir ${place.name}: ${error.message}`);
